@@ -405,6 +405,17 @@
                 
                 // Safe Load Supabase
                 if (typeof window.supabase === 'undefined') {
+                    // Force the loader to hide if it takes too long
+                    setTimeout(() => {
+                        const loader = document.getElementById('system-loader');
+                        if(loader && loader.style.display !== 'none') {
+                            loader.style.display = 'none';
+                            // If user is on landing, show it
+                            if(!window.location.hash) document.getElementById('view-landing').classList.remove('hide');
+                        }
+                    }, 4000); 
+
+                    // Retry init
                     setTimeout(() => { if (typeof window.supabase !== 'undefined') app.init(); }, 500);
                     return;
                 }
@@ -529,7 +540,6 @@
                 if (typeof PaystackPop === 'undefined') {
                     alert("Paystack loading... Check connection."); return;
                 }
-                
                 const c = COURSES_DB.find(x => x.id === this.state.currentCourseId);
                 
                 if(!this.state.user || !this.state.user.email) {
@@ -724,7 +734,7 @@
                 if (isComingSoon) {
                     list.innerHTML = `<div class="text-center py-10 text-brand-sub text-sm">Questions are being solved by our experts.<br>Check back soon.</div>`;
                 } else if(owned) {
-                    // LOCKED / UNLOCKED VIEW FIX (Added onclick to the whole row)
+                    // LOCKED / UNLOCKED VIEW FIX - ADDED CLICK HANDLERS
                     list.innerHTML = c.questions.map((q, i) => `
                         <div onclick="app.openAnswers()" class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm mb-3 flex items-center justify-between cursor-pointer hover:border-brand-blue transition group">
                             <div class="flex items-center gap-3">
