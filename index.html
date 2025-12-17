@@ -216,6 +216,7 @@
                         <button onclick="app.initiatePayment()" class="bg-white text-brand-dark font-bold py-3 px-6 rounded-xl hover:bg-slate-100 transition shadow-sm">Unlock Now</button>
                     </div>
                     <button id="btn-view-course" onclick="app.openAnswers()" class="hidden w-full bg-brand-blue text-white font-bold py-4 px-6 rounded-[1.25rem] shadow-float hover:bg-blue-600 transition flex justify-center items-center gap-2"><span>Start Learning</span> <i class="fa-solid fa-arrow-right"></i></button>
+                    <div id="coming-soon-msg" class="hidden text-center text-xs font-bold text-brand-sub">Answers coming this week.</div>
                     <div class="text-center mt-2 text-[10px] text-slate-400 font-bold flex justify-center gap-1"><i class="fa-solid fa-shield text-green-500"></i> Money-back guarantee</div>
                 </div>
             </div>
@@ -264,7 +265,7 @@
         </section>
     </main>
 
-    <!-- Bottom Navigation (Fixed Z-Index & Position) -->
+    <!-- Bottom Navigation -->
     <nav id="nav-bottom" class="fixed bottom-6 left-6 right-6 max-w-md mx-auto z-40 hide transition-transform duration-300">
         <div class="bg-white/90 backdrop-blur-xl border border-white/20 shadow-float rounded-full px-6 py-3 flex justify-between items-center">
             <button onclick="app.navigateTo('dashboard')" id="nav-dash" class="flex flex-col items-center gap-1 w-12 text-slate-400 hover:text-brand-dark transition group"><i class="fa-solid fa-house text-xl mb-0.5 group-hover:scale-110 transition"></i></button>
@@ -390,15 +391,17 @@
                     return;
                 }
                 
-                // Force profile creation explicitly to be safe
+                // FORCE UPDATE STATE INSTANTLY (Fixes "Student" loading issue)
+                this.state.user = data.user;
+                this.state.profile = { full_name: name, faculty: faculty, level: level };
+                
+                // Background Sync
                 if(data.user) {
                     await supabase.from('profiles').upsert([{
                         id: data.user.id, full_name: name, faculty: faculty, level: level
                     }]);
                 }
 
-                this.state.user = data.user;
-                this.state.profile = { full_name: name, faculty: faculty, level: level };
                 this.showToast('Account Created!');
                 this.navigateTo('dashboard');
             },
@@ -434,6 +437,12 @@
 
             // --- PAYMENTS ---
             initiatePayment: function() {
+                // Safety Check
+                if (typeof PaystackPop === 'undefined') {
+                    alert("Paystack is still loading. Please check your internet or try again in 5 seconds.");
+                    return;
+                }
+
                 const c = COURSES_DB.find(x => x.id === this.state.currentCourseId);
                 const handler = PaystackPop.setup({
                     key: PAYSTACK_KEY,
@@ -572,12 +581,13 @@
 
                 const buy = document.getElementById('btn-container-buy');
                 const view = document.getElementById('btn-view-course');
+                const msg = document.getElementById('coming-soon-msg');
                 
                 // Reset buttons
-                buy.classList.add('hidden'); view.classList.add('hidden');
+                buy.classList.add('hidden'); view.classList.add('hidden'); msg.classList.add('hidden');
 
                 if(isComingSoon) {
-                    // Logic for coming soon (Show neither, maybe alert)
+                    msg.classList.remove('hidden');
                 } else if(owned) {
                     view.classList.remove('hidden');
                 } else {
