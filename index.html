@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LCU Prep - Information Resources Management</title>
+    <title>LCU Prep - First Class Solutions</title>
     
     <!-- 1. STYLES -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -130,6 +130,7 @@
                         <option value="200L">200L</option>
                         <option value="300L">300L</option>
                         <option value="400L">400L</option>
+                        <option value="500L">500L</option>
                     </select>
                 </div>
                 
@@ -265,7 +266,7 @@
         </section>
     </main>
 
-    <!-- Bottom Navigation -->
+    <!-- Bottom Navigation (Fixed Z-Index & Position) -->
     <nav id="nav-bottom" class="fixed bottom-6 left-6 right-6 max-w-md mx-auto z-40 hide transition-transform duration-300">
         <div class="bg-white/90 backdrop-blur-xl border border-white/20 shadow-float rounded-full px-6 py-3 flex justify-between items-center">
             <button onclick="app.navigateTo('dashboard')" id="nav-dash" class="flex flex-col items-center gap-1 w-12 text-slate-400 hover:text-brand-dark transition group"><i class="fa-solid fa-house text-xl mb-0.5 group-hover:scale-110 transition"></i></button>
@@ -289,43 +290,67 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlra3NwZ3ZodmVhZWVhaXNwcnF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MTUyMTcsImV4cCI6MjA4MTQ5MTIxN30.czIFeiOXzPIT1N7rJ0zdc3uMnLykoiGAxmNWgPeA-h8';
         const PAYSTACK_KEY = 'pk_live_2320cc6bb508955bd07391f75a4c73d757a0d6f6';
 
-        // --- 2. YOUR IRM & LIS COURSES (EDIT CONTENT HERE) ---
+        // --- 2. COURSES DB (REAL ANSWERS) ---
         const COURSES_DB = [
+            // --- IRM 102 ---
+            { 
+                id: 'irm102', code: 'IRM 102', title: 'Library Routines', faculty: 'IRM', level: '100L', price: 300, 
+                questions: [
+                    { q: 'How do the routines of academic, public, and special libraries differ?', a: '### Academic Libraries\nRoutines focus on supporting curriculum and research. Acquisitions are driven by faculty. Circulation allows long-term borrowing.\n\n### Public Libraries\nRoutines are geared towards community needs and recreation. Collection is broader (fiction, local interest). Circulation is high-volume with shorter loans.\n\n### Special Libraries\nRoutines are highly specialized. Acquisitions are on-demand. Dissemination is proactive to specific staff.' },
+                    { q: 'Why are standard operating procedures (SOPs) essential in library management?', a: '### Consistency\nEnsures every user receives the same level of service.\n\n### Training\nServes as a tool for new staff.\n\n### Crisis Management\nProvides reference for complex situations like disaster response.' },
+                    { q: 'Explain the library acquisition process.', a: '### Needs Assessment\nAnalyzing user requests.\n\n### Selection\nChoosing materials based on budget.\n\n### Ordering\nPlacing orders with vendors.\n\n### Receiving\nVerifying arrival against invoices.\n\n### Processing\nStamping ownership.' },
+                    { q: 'Factors for collection development policy.', a: '### User Needs\nMust reflect the community served.\n\n### Budget\nAlign aspirations with financial reality.\n\n### Mission\nSupport the parent organization goals.\n\n### Format\nBalance between print and digital.' },
+                    { q: 'Compare Dewey Decimal (DDC) and Library of Congress (LCC).', a: '### DDC\nUsed in public libraries. Divides knowledge into 10 classes (000-999). Decimal notation.\n\n### LCC\nUsed in academic libraries. Divides into 21 classes (A-Z). Alphanumeric. Better for large collections.' }
+                ] 
+            },
+            // --- IRM 103 ---
             { 
                 id: 'irm103', code: 'IRM 103', title: 'Libraries and Societies', faculty: 'IRM', level: '100L', price: 300, 
                 questions: [
-                    { q: 'Discuss the role of libraries in modern society.', a: '### Introduction\nLibraries act as gateways to knowledge...\n\n### Role 1\nPreservation of culture.\n\n### Role 2\nEducational support.' },
-                    { q: 'Explain the concept of Information Society.', a: '### Definition\nAn information society is...' }
+                    { q: 'Define a library and explain its primary functions.', a: '### Definition\nA social institution that collects, organizes, preserves, and disseminates information.\n\n### Functions\n1. Gateway to Information.\n2. Education Support.\n3. Cultural Preservation.\n4. Social Hub.' },
+                    { q: 'Discuss historical development of libraries.', a: '### Ancient\nMesopotamia (Clay tablets), Egypt (Papyrus).\n\n### Medieval\nMonasteries preserved knowledge.\n\n### Renaissance\nPrinting press exploded book numbers.\n\n### Modern\nPublic library movement (Tax-supported).' },
+                    { q: 'Relationship between libraries and education.', a: '### Formal Support\nProvide materials for exams and research.\n\n### Literacy\nFight illiteracy in the population.\n\n### Independent Learning\nResources for self-directed education.' },
+                    { q: 'How do public libraries contribute to social inclusion?', a: '### Inclusion\nFree services to marginalized groups. Bridge digital divide.\n\n### Community\nHost town halls and health information sessions.' },
+                    { q: 'Identify five major types of libraries.', a: '1. Public\n2. Academic\n3. School\n4. Special\n5. National' }
                 ] 
             },
-            { 
-                id: 'irm102', code: 'IRM 102', title: 'Library Routines', faculty: 'IRM', level: '100L', price: 300, 
-                questions: [{ q: 'List 5 library routines.', a: '1. Cataloging\n2. Classification\n3. Acquisitions...' }] 
-            },
+            // --- IRM 104 (Intro to Computer) ---
             { 
                 id: 'irm104', code: 'IRM 104', title: 'Introduction to Computer', faculty: 'IRM', level: '100L', price: 300, 
-                questions: [{ q: 'Define Hardware and Software.', a: 'Hardware is...' }] 
+                questions: [
+                    { q: 'What is a computer? Discuss booting.', a: '### Computer\nElectronic device that accepts data, processes it, and produces output.\n\n### Booting\nLoading OS from hard drive to RAM.\n\n### Restarting\nClearing RAM to fix glitches.\n\n### Shutdown\nCutting power to prevent hardware damage.' },
+                    { q: 'Differentiate 3rd and 4th Gen computers.', a: '### 3rd Gen (1964-71)\nUsed Integrated Circuits (ICs). Keyboards introduced.\n\n### 4th Gen (1971-Present)\nUses Microprocessors (VLSI). Entire CPU on one chip.' },
+                    { q: 'Drawbacks of 1st Gen computers.', a: '1. Massive Size\n2. Generated immense heat\n3. Unreliable (Vacuum tubes blew)\n4. Consumed huge power\n5. Machine Language only.' }
+                ] 
             },
+            // --- IRM 105 (Data Modelling) ---
             { 
                 id: 'irm105', code: 'IRM 105', title: 'Data Modelling and Storage', faculty: 'IRM', level: '100L', price: 300, 
-                questions: [{ q: 'What is ER Diagram?', a: 'Entity Relationship Diagram...' }] 
+                questions: [
+                    { q: 'What is a data model?', a: '### Definition\nConceptual representation of data structures. It defines entities, attributes, and relationships.\n\n### Criteria for Storage\n1. Access speed\n2. Capacity\n3. Security\n4. Cost' },
+                    { q: 'Explain Entity, Attribute, Primary Key.', a: '### Entity\nReal-world object (e.g., Student).\n\n### Attribute\nCharacteristic (e.g., Name).\n\n### Primary Key\nUnique identifier (e.g., Matric Number).' },
+                    { q: 'Differentiate Master vs Transaction files.', a: '### Master File\nPermanent records (e.g., Customer List).\n\n### Transaction File\nTemporary data about daily events (e.g., Daily Sales).' }
+                ] 
             },
+            // --- IRM 106 (Record Management) ---
             { 
                 id: 'irm106', code: 'IRM 106', title: 'Record Management', faculty: 'IRM', level: '100L', price: 300, 
-                questions: [{ q: 'Stages of Record Life Cycle.', a: 'Creation -> Usage -> Maintenance -> Disposal' }] 
+                questions: [
+                    { q: 'Stages of Record Life Cycle.', a: '### Creation\nRecord is generated.\n\n### Usage\nActive reference.\n\n### Maintenance\nStorage and retrieval.\n\n### Disposal\nDestruction or Archiving.' }
+                ] 
             },
+            // --- LIS 104 (Info Arch) ---
             { 
                 id: 'lis104', code: 'LIS 104', title: 'Information Architecture', faculty: 'IRM', level: '100L', price: 300, 
-                questions: [{ q: 'Components of IA.', a: 'Organization, Labeling, Navigation, Search.' }] 
+                questions: [
+                    { q: 'What is Information Architecture (IA)?', a: '### Definition\nStructural design of shared information environments. Organizing websites to support usability.\n\n### Importance\nPrevents information overload. Ensures users find what they need.' },
+                    { q: 'Difference between IA and UX.', a: '### UX (User Experience)\nBroad umbrella covering emotional response.\n\n### IA\nFocuses on structure and organization (The Skeleton).' },
+                    { q: 'Three pillars of IA.', a: '1. Content (Data)\n2. Users (Audience)\n3. Context (Business goals)' }
+                ] 
             },
-            { 
-                id: 'gst107', code: 'GST 107', title: 'Use of English', faculty: 'IRM', level: '100L', price: 300, 
-                questions: [] // Empty = Coming Soon
-            },
-            { 
-                id: 'gst106', code: 'GST 106', title: 'Personal Health', faculty: 'IRM', level: '100L', price: 300, 
-                questions: [] // Empty = Coming Soon
-            }
+            // --- GST (Placeholders) ---
+            { id: 'gst107', code: 'GST 107', title: 'Use of English', faculty: 'IRM', level: '100L', price: 300, questions: [] },
+            { id: 'gst106', code: 'GST 106', title: 'Personal Health', faculty: 'IRM', level: '100L', price: 300, questions: [] }
         ];
 
         let supabase;
@@ -353,7 +378,6 @@
                 let { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
                 if (!profile) {
                     const meta = this.state.user.user_metadata;
-                    // If metadata exists, create profile immediately
                     if(meta && meta.full_name) {
                         const { error } = await supabase.from('profiles').insert([{
                             id: userId, full_name: meta.full_name, faculty: meta.faculty, level: meta.level
@@ -391,17 +415,16 @@
                     return;
                 }
                 
-                // FORCE UPDATE STATE INSTANTLY (Fixes "Student" loading issue)
-                this.state.user = data.user;
-                this.state.profile = { full_name: name, faculty: faculty, level: level };
-                
-                // Background Sync
+                // Force profile creation explicitly to be safe
                 if(data.user) {
                     await supabase.from('profiles').upsert([{
                         id: data.user.id, full_name: name, faculty: faculty, level: level
                     }]);
                 }
 
+                this.state.user = data.user;
+                this.state.profile = { full_name: name, faculty: faculty, level: level }; // Instant Local Update
+                
                 this.showToast('Account Created!');
                 this.navigateTo('dashboard');
             },
@@ -437,13 +460,17 @@
 
             // --- PAYMENTS ---
             initiatePayment: function() {
-                // Safety Check
                 if (typeof PaystackPop === 'undefined') {
-                    alert("Paystack is still loading. Please check your internet or try again in 5 seconds.");
+                    alert("Paystack loading... Check connection."); return;
+                }
+                const c = COURSES_DB.find(x => x.id === this.state.currentCourseId);
+                
+                // Safety Check for Email
+                if(!this.state.user || !this.state.user.email) {
+                    alert("Please log in again to verify your email.");
                     return;
                 }
 
-                const c = COURSES_DB.find(x => x.id === this.state.currentCourseId);
                 const handler = PaystackPop.setup({
                     key: PAYSTACK_KEY,
                     email: this.state.user.email,
@@ -455,7 +482,7 @@
                             this.state.purchasedIds.push(c.id);
                             this.showToast('Payment Successful! Course Unlocked.');
                             this.openCourse(c.id);
-                        } else alert("Contact support: " + error.message);
+                        } else alert("Payment successful, but database error: " + error.message);
                     },
                     onClose: () => alert('Transaction cancelled.')
                 });
@@ -583,7 +610,6 @@
                 const view = document.getElementById('btn-view-course');
                 const msg = document.getElementById('coming-soon-msg');
                 
-                // Reset buttons
                 buy.classList.add('hidden'); view.classList.add('hidden'); msg.classList.add('hidden');
 
                 if(isComingSoon) {
