@@ -10,9 +10,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700;900&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
-    <!-- 2. LIBRARIES -->
+    <!-- 2. LIBRARIES (Supabase & Paystack) -->
     <script src="https://js.paystack.co/v1/inline.js"></script>
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     
     <script>
         tailwind.config = {
@@ -60,7 +60,7 @@
                 LCU Prep
             </div>
             <div id="nav-actions">
-                <!-- Injected via JS -->
+                <button onclick="app.navigateTo('signup')" class="bg-brand-blue text-white font-bold py-2 px-4 rounded-full text-xs hover:bg-blue-600 transition shadow-sm">Get Started</button>
             </div>
         </div>
     </header>
