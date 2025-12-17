@@ -48,6 +48,8 @@
         .last-step .step-line { display: none; }
         .spinner { border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 3px solid white; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        /* Active Filter Style */
+        .filter-active { background-color: #0F172A !important; color: white !important; border: none !important; }
     </style>
 </head>
 <body class="h-screen flex flex-col text-sm antialiased selection:bg-brand-blue/20 selection:text-brand-blue">
@@ -178,6 +180,7 @@
 
             <div class="px-6 pb-20">
                 <h2 class="font-bold text-lg text-brand-dark mb-4">Browse Catalog</h2>
+                <!-- Filter Chips -->
                 <div class="flex gap-2 overflow-x-auto pb-4 -mx-6 px-6 no-scrollbar" id="filter-faculty-container"></div>
                 <div id="course-grid-all" class="space-y-3"></div>
             </div>
@@ -209,7 +212,7 @@
                 </div>
             </div>
 
-            <!-- Sticky Footer (FIXED UI CLASH) -->
+            <!-- Sticky Footer -->
             <div class="fixed bottom-0 left-0 right-0 p-6 bg-white border-t border-slate-100 z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] pb-8">
                 <div class="max-w-md mx-auto">
                     <div id="btn-container-buy" class="bg-brand-dark text-white p-2 pl-6 rounded-[1.25rem] shadow-float flex items-center justify-between">
@@ -248,7 +251,10 @@
                         <div><p class="text-xs text-slate-400 font-bold uppercase tracking-wider mb-1">Referral Earnings</p><h3 class="text-3xl font-bold text-white">N350</h3></div>
                         <div class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm"><i class="fa-solid fa-wallet text-white/80"></i></div>
                     </div>
-                    <div class="flex gap-3"><button class="flex-1 bg-white text-brand-dark text-xs font-bold py-2.5 px-4 rounded-xl">Withdraw</button><button class="flex-1 bg-brand-blue text-white text-xs font-bold py-2.5 px-4 rounded-xl">Invite</button></div>
+                    <div class="flex gap-3">
+                        <button onclick="alert('Withdrawal feature coming in next update!')" class="flex-1 bg-white text-brand-dark text-xs font-bold py-2.5 px-4 rounded-xl">Withdraw</button>
+                        <button onclick="app.copyReferral()" class="flex-1 bg-brand-blue text-white text-xs font-bold py-2.5 px-4 rounded-xl">Invite</button>
+                    </div>
                 </div>
                 <div class="bg-white rounded-[1.5rem] shadow-card overflow-hidden">
                     <button onclick="app.navigateTo('purchases')" class="w-full text-left px-6 py-5 border-b border-slate-50 flex justify-between items-center hover:bg-slate-50"><span class="text-sm font-semibold text-brand-dark flex items-center gap-3"><i class="fa-solid fa-book-open text-brand-sub w-5"></i> My Library</span><i class="fa-solid fa-chevron-right text-xs text-slate-300"></i></button>
@@ -266,7 +272,7 @@
         </section>
     </main>
 
-    <!-- Bottom Navigation (Fixed Z-Index & Position) -->
+    <!-- Bottom Navigation -->
     <nav id="nav-bottom" class="fixed bottom-6 left-6 right-6 max-w-md mx-auto z-40 hide transition-transform duration-300">
         <div class="bg-white/90 backdrop-blur-xl border border-white/20 shadow-float rounded-full px-6 py-3 flex justify-between items-center">
             <button onclick="app.navigateTo('dashboard')" id="nav-dash" class="flex flex-col items-center gap-1 w-12 text-slate-400 hover:text-brand-dark transition group"><i class="fa-solid fa-house text-xl mb-0.5 group-hover:scale-110 transition"></i></button>
@@ -290,7 +296,7 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlra3NwZ3ZodmVhZWVhaXNwcnF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MTUyMTcsImV4cCI6MjA4MTQ5MTIxN30.czIFeiOXzPIT1N7rJ0zdc3uMnLykoiGAxmNWgPeA-h8';
         const PAYSTACK_KEY = 'pk_live_2320cc6bb508955bd07391f75a4c73d757a0d6f6';
 
-        // --- 2. COURSES DB (REAL ANSWERS) ---
+        // --- 2. COURSES DB ---
         const COURSES_DB = [
             // --- IRM 102 ---
             { 
@@ -355,7 +361,7 @@
 
         let supabase;
         const app = {
-            state: { user: null, profile: null, currentCourseId: null, purchasedIds: [] },
+            state: { user: null, profile: null, currentCourseId: null, purchasedIds: [], activeFilter: 'All' },
 
             init: async function() {
                 if (typeof window.supabase === 'undefined') {
@@ -415,7 +421,6 @@
                     return;
                 }
                 
-                // Force profile creation explicitly to be safe
                 if(data.user) {
                     await supabase.from('profiles').upsert([{
                         id: data.user.id, full_name: name, faculty: faculty, level: level
@@ -423,7 +428,7 @@
                 }
 
                 this.state.user = data.user;
-                this.state.profile = { full_name: name, faculty: faculty, level: level }; // Instant Local Update
+                this.state.profile = { full_name: name, faculty: faculty, level: level }; 
                 
                 this.showToast('Account Created!');
                 this.navigateTo('dashboard');
@@ -465,28 +470,31 @@
                 }
                 const c = COURSES_DB.find(x => x.id === this.state.currentCourseId);
                 
-                // Safety Check for Email
                 if(!this.state.user || !this.state.user.email) {
-                    alert("Please log in again to verify your email.");
+                    alert("Error: User email missing. Please log out and log in again.");
                     return;
                 }
 
-                const handler = PaystackPop.setup({
-                    key: PAYSTACK_KEY,
-                    email: this.state.user.email,
-                    amount: c.price * 100,
-                    currency: 'NGN',
-                    callback: async (response) => {
-                        const { error } = await supabase.from('purchases').insert([{ user_id: this.state.user.id, course_id: c.id }]);
-                        if (!error) {
-                            this.state.purchasedIds.push(c.id);
-                            this.showToast('Payment Successful! Course Unlocked.');
-                            this.openCourse(c.id);
-                        } else alert("Payment successful, but database error: " + error.message);
-                    },
-                    onClose: () => alert('Transaction cancelled.')
-                });
-                handler.openIframe();
+                try {
+                    const handler = PaystackPop.setup({
+                        key: PAYSTACK_KEY,
+                        email: this.state.user.email,
+                        amount: c.price * 100,
+                        currency: 'NGN',
+                        callback: async (response) => {
+                            const { error } = await supabase.from('purchases').insert([{ user_id: this.state.user.id, course_id: c.id }]);
+                            if (!error) {
+                                this.state.purchasedIds.push(c.id);
+                                this.showToast('Payment Successful! Course Unlocked.');
+                                this.openCourse(c.id);
+                            } else alert("Payment successful, but database error: " + error.message);
+                        },
+                        onClose: () => alert('Transaction cancelled.')
+                    });
+                    handler.openIframe();
+                } catch(e) {
+                    alert("Paystack Error: " + e.message);
+                }
             },
 
             // --- NAV & RENDER ---
@@ -527,10 +535,23 @@
             setupFilters: function() {
                 const facs = ['IRM', 'Engineering', 'Sciences', 'Business', 'Law'];
                 const con = document.getElementById('filter-faculty-container');
-                con.innerHTML = `<button onclick="app.filterCourses('All')" class="bg-brand-dark text-white px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap shadow-md">All</button>`;
+                con.innerHTML = `<button id="fil-All" onclick="app.setFilter('All')" class="bg-brand-dark text-white px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap shadow-md filter-btn">All</button>`;
                 facs.forEach(f => {
-                    con.innerHTML += `<button onclick="app.filterCourses('${f}')" class="bg-white border border-slate-200 text-brand-sub px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap hover:bg-slate-50 transition">${f}</button>`;
+                    con.innerHTML += `<button id="fil-${f}" onclick="app.setFilter('${f}')" class="bg-white border border-slate-200 text-brand-sub px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap hover:bg-slate-50 transition filter-btn">${f}</button>`;
                 });
+            },
+
+            setFilter: function(fac) {
+                this.state.activeFilter = fac;
+                // Update UI Buttons
+                document.querySelectorAll('.filter-btn').forEach(btn => {
+                    if(btn.id === `fil-${fac}`) {
+                        btn.className = "bg-brand-dark text-white px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap shadow-md filter-btn filter-active";
+                    } else {
+                        btn.className = "bg-white border border-slate-200 text-brand-sub px-5 py-2.5 rounded-full text-xs font-bold whitespace-nowrap hover:bg-slate-50 transition filter-btn";
+                    }
+                });
+                this.filterCourses();
             },
 
             renderDashboard: function() {
@@ -542,8 +563,10 @@
                 this.filterCourses();
             },
 
-            filterCourses: function(fac = 'All') {
+            filterCourses: function() {
                 const term = document.getElementById('search-input').value.toLowerCase();
+                const fac = this.state.activeFilter;
+                
                 let list = COURSES_DB.filter(c => {
                     const matchFac = fac === 'All' || c.faculty === fac;
                     const matchTerm = c.code.toLowerCase().includes(term) || c.title.toLowerCase().includes(term);
@@ -643,7 +666,7 @@
                             <div class="absolute top-0 right-0 bg-brand-blue text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl z-10">FREE PREVIEW</div>
                             <div class="p-6">
                                 <h4 class="font-serif font-bold text-brand-dark mb-4 text-lg leading-snug">${q1.q}</h4>
-                                <div class="mt-4 pt-4 border-t border-slate-50 text-center"><span class="text-xs text-brand-blue font-bold cursor-pointer hover:underline">Read full answer</span></div>
+                                <div class="mt-4 pt-4 border-t border-slate-50 text-center"><span onclick="app.openAnswers()" class="text-xs text-brand-blue font-bold cursor-pointer hover:underline">Read full answer</span></div>
                             </div>
                         </div>`;
                         
@@ -709,6 +732,12 @@
                     document.getElementById('profile-name').innerText = name;
                     document.getElementById('profile-details').innerText = `${this.state.profile.faculty} • ${this.state.profile.level}`;
                 }
+            },
+
+            copyReferral: function() {
+                const text = "Use my link lcuprep.com/r/" + this.state.user.id.substring(0,6);
+                navigator.clipboard.writeText(text);
+                this.showToast('Referral link copied!');
             },
 
             showToast: function(msg) {
