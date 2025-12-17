@@ -42,27 +42,45 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #FFFFFF; color: #334155; -webkit-font-smoothing: antialiased; }
         .app-bg { background-color: #F8FAFC; min-height: 100vh; }
         .hide { display: none !important; }
-        .view-section { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .view-section { animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
         .step-line { position: absolute; left: 11px; top: 24px; bottom: -24px; width: 2px; background-color: #E2E8F0; }
         .last-step .step-line { display: none; }
-        .spinner { border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 3px solid white; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        
+        /* SYSTEM LOADER */
+        #system-loader { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s; }
+        .spinner { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #2563EB; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* Active Filter Style */
-        .filter-active { background-color: #0F172A !important; color: white !important; border: none !important; }
+
+        /* FIXED WATERMARK STYLE */
+        #watermark-layer {
+            position: absolute; inset: 0; pointer-events: none;
+            z-index: 0; opacity: 0.08; /* Slightly more visible */
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: repeat(10, 1fr);
+            gap: 40px;
+            padding: 20px;
+        }
+        .watermark-item {
+            transform: rotate(-30deg);
+            white-space: nowrap;
+            font-size: 1.2rem;
+            font-weight: 800;
+            color: #1e293b;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col text-sm antialiased selection:bg-brand-blue/20 selection:text-brand-blue">
 
-    <!-- GLOBAL ERROR HANDLER -->
-    <script>
-        window.onerror = function(msg, url, line) {
-            console.log("Error Logged:", msg); // Silent logging mostly
-            if(msg.includes('supabase') && !window.supabase) {
-                alert("Connection Error: Please refresh the page to load the database.");
-            }
-        };
-    </script>
+    <!-- SYSTEM LOADER OVERLAY -->
+    <div id="system-loader"><div class="spinner"></div></div>
 
     <!-- Top Navigation -->
     <header id="top-nav" class="bg-white/90 backdrop-blur-md sticky top-0 z-40 transition-all duration-300">
@@ -72,7 +90,7 @@
                 LCU Prep
             </div>
             <div id="nav-actions">
-                <button onclick="app.navigateTo('signup')" class="bg-brand-blue text-white font-bold py-2 px-4 rounded-full text-xs hover:bg-blue-600 transition shadow-sm">Get Started</button>
+                <button onclick="safeNavigate('signup')" class="bg-brand-blue text-white font-bold py-2 px-4 rounded-full text-xs hover:bg-blue-600 transition shadow-sm">Get Started</button>
             </div>
         </div>
     </header>
@@ -92,8 +110,8 @@
                     We provide <strong class="text-brand-dark">First Class level solutions</strong> to all 15 tutorial questions. Study the right things.
                 </p>
                 <div class="space-y-3">
-                    <button onclick="app.navigateTo('signup')" class="bg-brand-blue text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-blue-500/25 hover:scale-[1.02] transition w-full text-base">Find My Course</button>
-                    <button onclick="app.navigateTo('login')" class="text-brand-sub font-semibold py-4 px-6 w-full hover:bg-slate-50 rounded-2xl transition border border-slate-100">I already have an account</button>
+                    <button onclick="safeNavigate('signup')" class="bg-brand-blue text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-blue-500/25 hover:scale-[1.02] transition w-full text-base">Find My Course</button>
+                    <button onclick="safeNavigate('login')" class="text-brand-sub font-semibold py-4 px-6 w-full hover:bg-slate-50 rounded-2xl transition border border-slate-100">I already have an account</button>
                 </div>
             </div>
             
@@ -245,9 +263,9 @@
                 <div class="text-[10px] font-bold text-brand-sub uppercase tracking-wider border border-slate-200 px-2 py-1 rounded">Read Mode</div>
             </div>
             
-            <!-- WATERMARK -->
+            <!-- WATERMARK LAYER -->
             <div id="watermark-layer"></div>
-            
+
             <div id="full-answers-container" class="px-6 py-8 space-y-16 pb-32 relative z-20 max-w-2xl mx-auto"></div>
         </section>
 
@@ -309,11 +327,20 @@
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inlra3NwZ3ZodmVhZWVhaXNwcnF6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU5MTUyMTcsImV4cCI6MjA4MTQ5MTIxN30.czIFeiOXzPIT1N7rJ0zdc3uMnLykoiGAxmNWgPeA-h8';
         const PAYSTACK_KEY = 'pk_live_2320cc6bb508955bd07391f75a4c73d757a0d6f6';
 
-        // --- 2. COURSES DB (WITH 15 SLOTS FOR YOU TO FILL) ---
-        // Search "TODO: PASTE ANSWER" to find where to put your text.
-        
+        // GLOBAL NAVIGATION HELPER (Makes buttons work instantly)
+        window.safeNavigate = function(viewId) {
+            if(window.app && window.app.navigateTo) {
+                window.app.navigateTo(viewId);
+            } else {
+                // If app not ready, force it into hash
+                window.location.hash = viewId;
+                window.location.reload();
+            }
+        };
+
+        // --- 2. COURSES DB ---
+        // (I HAVE KEPT YOUR 5 COURSES WITH QUESTIONS HERE)
         const COURSES_DB = [
-            // --- IRM 102 ---
             { 
                 id: 'irm102', code: 'IRM 102', title: 'Library Routines', faculty: 'IRM', level: '100L', price: 1000, 
                 questions: [
@@ -321,21 +348,9 @@
                     { q: 'Why are standard operating procedures (SOPs) essential in library management?', a: '### Consistency\nEnsures every user receives the same level of service.\n\n### Training\nServes as a tool for new staff.\n\n### Crisis Management\nProvides reference for complex situations like disaster response.' },
                     { q: 'Explain the library acquisition process.', a: '### Needs Assessment\nAnalyzing user requests.\n\n### Selection\nChoosing materials based on budget.\n\n### Ordering\nPlacing orders with vendors.\n\n### Receiving\nVerifying arrival against invoices.\n\n### Processing\nStamping ownership.' },
                     { q: 'Factors for collection development policy.', a: '### User Needs\nMust reflect the community served.\n\n### Budget\nAlign aspirations with financial reality.\n\n### Mission\nSupport the parent organization goals.\n\n### Format\nBalance between print and digital.' },
-                    { q: 'Compare Dewey Decimal (DDC) and Library of Congress (LCC).', a: '### DDC\nUsed in public libraries. Divides knowledge into 10 classes (000-999). Decimal notation.\n\n### LCC\nUsed in academic libraries. Divides into 21 classes (A-Z). Alphanumeric. Better for large collections.' },
-                    // FILL THE REST
-                    { q: 'Question 6...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 7...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 8...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 9...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 10...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 11...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 12...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 13...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 14...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 15...', a: 'TODO: PASTE ANSWER' }
+                    { q: 'Compare Dewey Decimal (DDC) and Library of Congress (LCC).', a: '### DDC\nUsed in public libraries. Divides knowledge into 10 classes (000-999). Decimal notation.\n\n### LCC\nUsed in academic libraries. Divides into 21 classes (A-Z). Alphanumeric. Better for large collections.' }
                 ] 
             },
-            // --- IRM 103 ---
             { 
                 id: 'irm103', code: 'IRM 103', title: 'Libraries and Societies', faculty: 'IRM', level: '100L', price: 1000, 
                 questions: [
@@ -343,109 +358,39 @@
                     { q: 'Discuss historical development of libraries.', a: '### Ancient\nMesopotamia (Clay tablets), Egypt (Papyrus).\n\n### Medieval\nMonasteries preserved knowledge.\n\n### Renaissance\nPrinting press exploded book numbers.\n\n### Modern\nPublic library movement (Tax-supported).' },
                     { q: 'Relationship between libraries and education.', a: '### Formal Support\nProvide materials for exams and research.\n\n### Literacy\nFight illiteracy in the population.\n\n### Independent Learning\nResources for self-directed education.' },
                     { q: 'How do public libraries contribute to social inclusion?', a: '### Inclusion\nFree services to marginalized groups. Bridge digital divide.\n\n### Community\nHost town halls and health information sessions.' },
-                    { q: 'Identify five major types of libraries.', a: '1. Public\n2. Academic\n3. School\n4. Special\n5. National' },
-                     // FILL THE REST
-                    { q: 'Question 6...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 7...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 8...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 9...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 10...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 11...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 12...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 13...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 14...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 15...', a: 'TODO: PASTE ANSWER' }
+                    { q: 'Identify five major types of libraries.', a: '1. Public\n2. Academic\n3. School\n4. Special\n5. National' }
                 ] 
             },
-            // --- IRM 104 ---
             { 
                 id: 'irm104', code: 'IRM 104', title: 'Introduction to Computer', faculty: 'IRM', level: '100L', price: 1000, 
                 questions: [
                     { q: 'What is a computer? Discuss booting.', a: '### Computer\nElectronic device that accepts data, processes it, and produces output.\n\n### Booting\nLoading OS from hard drive to RAM.\n\n### Restarting\nClearing RAM to fix glitches.\n\n### Shutdown\nCutting power to prevent hardware damage.' },
                     { q: 'Differentiate 3rd and 4th Gen computers.', a: '### 3rd Gen (1964-71)\nUsed Integrated Circuits (ICs). Keyboards introduced.\n\n### 4th Gen (1971-Present)\nUses Microprocessors (VLSI). Entire CPU on one chip.' },
-                    { q: 'Drawbacks of 1st Gen computers.', a: '1. Massive Size\n2. Generated immense heat\n3. Unreliable (Vacuum tubes blew)\n4. Consumed huge power\n5. Machine Language only.' },
-                    // FILL THE REST
-                    { q: 'Question 4...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 5...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 6...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 7...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 8...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 9...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 10...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 11...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 12...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 13...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 14...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 15...', a: 'TODO: PASTE ANSWER' }
+                    { q: 'Drawbacks of 1st Gen computers.', a: '1. Massive Size\n2. Generated immense heat\n3. Unreliable (Vacuum tubes blew)\n4. Consumed huge power\n5. Machine Language only.' }
                 ] 
             },
-            // --- IRM 105 ---
             { 
                 id: 'irm105', code: 'IRM 105', title: 'Data Modelling and Storage', faculty: 'IRM', level: '100L', price: 1000, 
                 questions: [
                     { q: 'What is a data model?', a: '### Definition\nConceptual representation of data structures. It defines entities, attributes, and relationships.\n\n### Criteria for Storage\n1. Access speed\n2. Capacity\n3. Security\n4. Cost' },
                     { q: 'Explain Entity, Attribute, Primary Key.', a: '### Entity\nReal-world object (e.g., Student).\n\n### Attribute\nCharacteristic (e.g., Name).\n\n### Primary Key\nUnique identifier (e.g., Matric Number).' },
-                    { q: 'Differentiate Master vs Transaction files.', a: '### Master File\nPermanent records (e.g., Customer List).\n\n### Transaction File\nTemporary data about daily events (e.g., Daily Sales).' },
-                    // FILL THE REST
-                    { q: 'Question 4...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 5...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 6...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 7...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 8...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 9...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 10...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 11...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 12...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 13...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 14...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 15...', a: 'TODO: PASTE ANSWER' }
+                    { q: 'Differentiate Master vs Transaction files.', a: '### Master File\nPermanent records (e.g., Customer List).\n\n### Transaction File\nTemporary data about daily events (e.g., Daily Sales).' }
                 ] 
             },
-            // --- IRM 106 ---
             { 
                 id: 'irm106', code: 'IRM 106', title: 'Record Management', faculty: 'IRM', level: '100L', price: 1000, 
                 questions: [
-                    { q: 'Stages of Record Life Cycle.', a: '### Creation\nRecord is generated.\n\n### Usage\nActive reference.\n\n### Maintenance\nStorage and retrieval.\n\n### Disposal\nDestruction or Archiving.' },
-                    // FILL THE REST
-                    { q: 'Question 2...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 3...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 4...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 5...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 6...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 7...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 8...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 9...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 10...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 11...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 12...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 13...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 14...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 15...', a: 'TODO: PASTE ANSWER' }
+                    { q: 'Stages of Record Life Cycle.', a: '### Creation\nRecord is generated.\n\n### Usage\nActive reference.\n\n### Maintenance\nStorage and retrieval.\n\n### Disposal\nDestruction or Archiving.' }
                 ] 
             },
-            // --- LIS 104 ---
             { 
                 id: 'lis104', code: 'LIS 104', title: 'Information Architecture', faculty: 'IRM', level: '100L', price: 1000, 
                 questions: [
                     { q: 'What is Information Architecture (IA)?', a: '### Definition\nStructural design of shared information environments. Organizing websites to support usability.\n\n### Importance\nPrevents information overload. Ensures users find what they need.' },
                     { q: 'Difference between IA and UX.', a: '### UX (User Experience)\nBroad umbrella covering emotional response.\n\n### IA\nFocuses on structure and organization (The Skeleton).' },
-                    { q: 'Three pillars of IA.', a: '1. Content (Data)\n2. Users (Audience)\n3. Context (Business goals)' },
-                     // FILL THE REST
-                    { q: 'Question 4...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 5...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 6...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 7...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 8...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 9...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 10...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 11...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 12...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 13...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 14...', a: 'TODO: PASTE ANSWER' },
-                    { q: 'Question 15...', a: 'TODO: PASTE ANSWER' }
+                    { q: 'Three pillars of IA.', a: '1. Content (Data)\n2. Users (Audience)\n3. Context (Business goals)' }
                 ] 
             },
-            // --- GST ---
             { id: 'gst107', code: 'GST 107', title: 'Use of English', faculty: 'IRM', level: '100L', price: 1000, questions: [] },
             { id: 'gst106', code: 'GST 106', title: 'Personal Health', faculty: 'IRM', level: '100L', price: 1000, questions: [] }
         ];
@@ -455,19 +400,44 @@
             state: { user: null, profile: null, currentCourseId: null, purchasedIds: [], activeFilter: 'All' },
 
             init: async function() {
+                // Handle Hash Routing
+                window.addEventListener('hashchange', () => app.handleHashChange());
+                
+                // Safe Load Supabase
                 if (typeof window.supabase === 'undefined') {
-                    setTimeout(app.init, 100); return;
+                    setTimeout(() => { if (typeof window.supabase !== 'undefined') app.init(); }, 500);
+                    return;
                 }
+
                 supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                
+                // Check Session
                 const { data: { session } } = await supabase.auth.getSession();
                 if (session) {
                     this.state.user = session.user;
                     await this.loadUserData();
-                    this.navigateTo('dashboard');
+                    
+                    if(!window.location.hash || window.location.hash === '#login' || window.location.hash === '#signup') {
+                         this.navigateTo('dashboard');
+                    } else {
+                         this.handleHashChange();
+                    }
                 } else {
-                    this.navigateTo('landing');
+                    if(window.location.hash === '#signup') this.navigateTo('signup');
+                    else if(window.location.hash === '#login') this.navigateTo('login');
+                    else this.navigateTo('landing');
                 }
+                
                 this.setupFilters();
+                document.getElementById('system-loader').style.opacity = '0';
+                setTimeout(() => document.getElementById('system-loader').style.display = 'none', 500);
+            },
+            
+            handleHashChange: function() {
+                const hash = window.location.hash.substring(1);
+                if(['landing', 'login', 'signup', 'dashboard', 'profile', 'purchases'].includes(hash)) {
+                    this.renderView(hash);
+                }
             },
 
             loadUserData: async function() {
@@ -559,6 +529,7 @@
                 if (typeof PaystackPop === 'undefined') {
                     alert("Paystack loading... Check connection."); return;
                 }
+                
                 const c = COURSES_DB.find(x => x.id === this.state.currentCourseId);
                 
                 if(!this.state.user || !this.state.user.email) {
@@ -599,8 +570,14 @@
 
             // --- NAV & RENDER ---
             navigateTo: function(viewId) {
+                window.location.hash = viewId;
+                this.renderView(viewId);
+            },
+            
+            renderView: function(viewId) {
                 document.querySelectorAll('.view-section').forEach(el => el.classList.add('hide'));
-                document.getElementById(`view-${viewId}`).classList.remove('hide');
+                const target = document.getElementById(`view-${viewId}`);
+                if(target) target.classList.remove('hide');
                 
                 const top = document.getElementById('top-nav');
                 const bot = document.getElementById('nav-bottom');
@@ -747,6 +724,7 @@
                 if (isComingSoon) {
                     list.innerHTML = `<div class="text-center py-10 text-brand-sub text-sm">Questions are being solved by our experts.<br>Check back soon.</div>`;
                 } else if(owned) {
+                    // LOCKED / UNLOCKED VIEW FIX (Added onclick to the whole row)
                     list.innerHTML = c.questions.map((q, i) => `
                         <div onclick="app.openAnswers()" class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm mb-3 flex items-center justify-between cursor-pointer hover:border-brand-blue transition group">
                             <div class="flex items-center gap-3">
@@ -791,15 +769,27 @@
                 }
 
                 const c = COURSES_DB.find(x => x.id === this.state.currentCourseId);
+                const owned = this.state.purchasedIds.includes(this.state.currentCourseId);
+                
                 document.getElementById('ans-code').innerText = c.code;
                 
+                // WATERMARK SETUP
                 const wmLayer = document.getElementById('watermark-layer');
                 wmLayer.innerHTML = '';
                 const wmText = this.state.profile ? this.state.profile.full_name : this.state.user.email;
-                for(let i=0; i<8; i++) wmLayer.innerHTML += `<div class="watermark-line">${wmText.toUpperCase()}</div>`;
+                for(let i=0; i<20; i++) {
+                     wmLayer.innerHTML += `<div class="watermark-item">${wmText.toUpperCase()}</div>`;
+                }
 
                 const container = document.getElementById('full-answers-container');
-                container.innerHTML = c.questions.map((q, idx) => {
+                
+                // DISPLAY LOGIC: IF OWNED, SHOW ALL. IF NOT, SHOW ONLY Q1.
+                let questionsToShow = c.questions;
+                if(!owned) {
+                    questionsToShow = [c.questions[0]]; // Only show first question
+                }
+
+                container.innerHTML = questionsToShow.map((q, idx) => {
                     const steps = q.a.split('### ').filter(Boolean);
                     const stepsHtml = steps.map(s => {
                         const [title, ...body] = s.split('\n');
@@ -813,6 +803,13 @@
                     }).join('');
                     return `<div class="mb-16"><div class="font-serif font-bold text-xl text-brand-dark mb-6 leading-snug">Q${idx+1}: ${q.q}</div>${stepsHtml}</div>`;
                 }).join('');
+                
+                if(!owned) {
+                     container.innerHTML += `<div class="text-center mt-12 p-6 bg-slate-50 rounded-2xl border border-slate-200">
+                        <p class="text-brand-sub mb-4 font-medium">Unlock the remaining 14 questions to pass your exam.</p>
+                        <button onclick="app.initiatePayment()" class="bg-brand-dark text-white font-bold py-3 px-8 rounded-xl hover:bg-slate-800 transition shadow-lg">Unlock Full Access</button>
+                     </div>`;
+                }
 
                 this.navigateTo('answers');
             },
