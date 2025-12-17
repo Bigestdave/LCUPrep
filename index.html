@@ -42,14 +42,23 @@
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #FFFFFF; color: #334155; -webkit-font-smoothing: antialiased; }
         .app-bg { background-color: #F8FAFC; min-height: 100vh; }
         .hide { display: none !important; }
-        .view-section { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .view-section { animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .step-line { position: absolute; left: 11px; top: 24px; bottom: -24px; width: 2px; background-color: #E2E8F0; }
         .last-step .step-line { display: none; }
         .spinner { border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 3px solid white; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* Active Filter Style */
-        .filter-active { background-color: #0F172A !important; color: white !important; border: none !important; }
+        
+        /* Watermark Styles */
+        #watermark-layer {
+            position: absolute; inset: 0; pointer-events: none;
+            display: flex; flex-direction: column; justify-content: space-around;
+            z-index: 0; opacity: 0.03; overflow: hidden;
+        }
+        .watermark-line {
+            transform: rotate(-15deg); white-space: nowrap;
+            font-size: 1.5rem; font-weight: 800; text-align: center; color: #0F172A; margin: 20px 0;
+        }
     </style>
 </head>
 <body class="h-screen flex flex-col text-sm antialiased selection:bg-brand-blue/20 selection:text-brand-blue">
@@ -62,7 +71,7 @@
                 LCU Prep
             </div>
             <div id="nav-actions">
-                <button onclick="app.navigateTo('signup')" class="bg-brand-blue text-white font-bold py-2 px-4 rounded-full text-xs hover:bg-blue-600 transition shadow-sm">Get Started</button>
+                <button onclick="app.safeNavigate('signup')" class="bg-brand-blue text-white font-bold py-2 px-4 rounded-full text-xs hover:bg-blue-600 transition shadow-sm">Get Started</button>
             </div>
         </div>
     </header>
@@ -82,8 +91,8 @@
                     We provide <strong class="text-brand-dark">First Class level solutions</strong> to all 15 tutorial questions. Study the right things.
                 </p>
                 <div class="space-y-3">
-                    <button onclick="app.navigateTo('signup')" class="bg-brand-blue text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-blue-500/25 hover:scale-[1.02] transition w-full text-base">Find My Course</button>
-                    <button onclick="app.navigateTo('login')" class="text-brand-sub font-semibold py-4 px-6 w-full hover:bg-slate-50 rounded-2xl transition border border-slate-100">I already have an account</button>
+                    <button onclick="app.safeNavigate('signup')" class="bg-brand-blue text-white font-bold py-4 px-8 rounded-2xl shadow-lg shadow-blue-500/25 hover:scale-[1.02] transition w-full text-base">Find My Course</button>
+                    <button onclick="app.safeNavigate('login')" class="text-brand-sub font-semibold py-4 px-6 w-full hover:bg-slate-50 rounded-2xl transition border border-slate-100">I already have an account</button>
                 </div>
             </div>
             
@@ -215,7 +224,7 @@
             <div class="fixed bottom-0 left-0 right-0 p-6 bg-white border-t border-slate-100 z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] pb-8">
                 <div class="max-w-md mx-auto">
                     <div id="btn-container-buy" class="bg-brand-dark text-white p-2 pl-6 rounded-[1.25rem] shadow-float flex items-center justify-between">
-                        <div class="flex flex-col"><span class="text-[10px] text-slate-300 uppercase font-bold tracking-wider">Full Access</span><div class="bg-brand-blue text-white text-xs font-bold px-2 py-0.5 rounded-md inline-block self-start mt-0.5">N<span id="detail-price">300</span></div></div>
+                        <div class="flex flex-col"><span class="text-[10px] text-slate-300 uppercase font-bold tracking-wider">Full Access</span><div class="bg-brand-blue text-white text-xs font-bold px-2 py-0.5 rounded-md inline-block self-start mt-0.5">N<span id="detail-price">1000</span></div></div>
                         <button onclick="app.initiatePayment()" class="bg-white text-brand-dark font-bold py-3 px-6 rounded-xl hover:bg-slate-100 transition shadow-sm">Unlock Now</button>
                     </div>
                     <button id="btn-view-course" onclick="app.openAnswers()" class="hidden w-full bg-brand-blue text-white font-bold py-4 px-6 rounded-[1.25rem] shadow-float hover:bg-blue-600 transition flex justify-center items-center gap-2"><span>Start Learning</span> <i class="fa-solid fa-arrow-right"></i></button>
@@ -234,6 +243,10 @@
                 </div>
                 <div class="text-[10px] font-bold text-brand-sub uppercase tracking-wider border border-slate-200 px-2 py-1 rounded">Read Mode</div>
             </div>
+            
+            <!-- WATERMARK LAYER (FIXED: This was missing!) -->
+            <div id="watermark-layer"></div>
+
             <div id="full-answers-container" class="px-6 py-8 space-y-16 pb-32 relative z-20 max-w-2xl mx-auto"></div>
         </section>
 
@@ -251,7 +264,7 @@
                         <div class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm"><i class="fa-solid fa-wallet text-white/80"></i></div>
                     </div>
                     <div class="flex gap-3">
-                        <button onclick="alert('Withdrawals available after your first referral!')" class="flex-1 bg-white text-brand-dark text-xs font-bold py-2.5 px-4 rounded-xl">Withdraw</button>
+                        <button onclick="alert('Withdrawals available soon!')" class="flex-1 bg-white text-brand-dark text-xs font-bold py-2.5 px-4 rounded-xl">Withdraw</button>
                         <button onclick="app.copyReferral()" class="flex-1 bg-brand-blue text-white text-xs font-bold py-2.5 px-4 rounded-xl">Invite</button>
                     </div>
                 </div>
@@ -363,19 +376,57 @@
             state: { user: null, profile: null, currentCourseId: null, purchasedIds: [], activeFilter: 'All' },
 
             init: async function() {
+                // Handle Hash Routing
+                window.addEventListener('hashchange', () => app.handleHashChange());
+                
+                // Safe Load Supabase
                 if (typeof window.supabase === 'undefined') {
-                    setTimeout(app.init, 100); return;
+                    // Retry once, then fail gracefully or just wait for user action
+                    setTimeout(() => {
+                        if (typeof window.supabase !== 'undefined') {
+                            app.init();
+                        }
+                    }, 500);
+                    return;
                 }
+
                 supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+                
+                // Check Session
                 const { data: { session } } = await supabase.auth.getSession();
                 if (session) {
                     this.state.user = session.user;
                     await this.loadUserData();
-                    this.navigateTo('dashboard');
+                    
+                    if(!window.location.hash || window.location.hash === '#login' || window.location.hash === '#signup') {
+                         this.navigateTo('dashboard');
+                    } else {
+                         this.handleHashChange();
+                    }
                 } else {
-                    this.navigateTo('landing');
+                    if(window.location.hash === '#signup') this.navigateTo('signup');
+                    else if(window.location.hash === '#login') this.navigateTo('login');
+                    else this.navigateTo('landing');
                 }
+                
                 this.setupFilters();
+            },
+            
+            handleHashChange: function() {
+                const hash = window.location.hash.substring(1);
+                if(['landing', 'login', 'signup', 'dashboard', 'profile', 'purchases'].includes(hash)) {
+                    this.renderView(hash);
+                }
+            },
+
+            safeNavigate: function(viewId) {
+                // Used for buttons on Landing Page to ensure we don't click dead links if JS isn't ready
+                if (typeof supabase === 'undefined') {
+                    // If scripts haven't loaded yet, force reload/wait
+                    window.location.reload(); 
+                } else {
+                    this.navigateTo(viewId);
+                }
             },
 
             loadUserData: async function() {
@@ -467,7 +518,6 @@
                 if (typeof PaystackPop === 'undefined') {
                     alert("Paystack loading... Check connection."); return;
                 }
-                
                 const c = COURSES_DB.find(x => x.id === this.state.currentCourseId);
                 
                 if(!this.state.user || !this.state.user.email) {
@@ -479,7 +529,7 @@
                     const paymentData = {
                         key: PAYSTACK_KEY,
                         email: this.state.user.email,
-                        amount: c.price * 100, // Amount in Kobo
+                        amount: c.price * 100,
                         currency: 'NGN',
                         callback: function(response) {
                             app.verifyPurchase(response, c.id);
@@ -508,8 +558,14 @@
 
             // --- NAV & RENDER ---
             navigateTo: function(viewId) {
+                window.location.hash = viewId;
+                this.renderView(viewId);
+            },
+            
+            renderView: function(viewId) {
                 document.querySelectorAll('.view-section').forEach(el => el.classList.add('hide'));
-                document.getElementById(`view-${viewId}`).classList.remove('hide');
+                const target = document.getElementById(`view-${viewId}`);
+                if(target) target.classList.remove('hide');
                 
                 const top = document.getElementById('top-nav');
                 const bot = document.getElementById('nav-bottom');
@@ -656,6 +712,7 @@
                 if (isComingSoon) {
                     list.innerHTML = `<div class="text-center py-10 text-brand-sub text-sm">Questions are being solved by our experts.<br>Check back soon.</div>`;
                 } else if(owned) {
+                    // LOCKED / UNLOCKED VIEW FIX - ADDED CLICK HANDLERS
                     list.innerHTML = c.questions.map((q, i) => `
                         <div onclick="app.openAnswers()" class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm mb-3 flex items-center justify-between cursor-pointer hover:border-brand-blue transition group">
                             <div class="flex items-center gap-3">
@@ -695,6 +752,10 @@
             },
 
             openAnswers: function() {
+                if(!this.state.currentCourseId) {
+                    alert('Error: No course selected. Please go back.'); return;
+                }
+
                 const c = COURSES_DB.find(x => x.id === this.state.currentCourseId);
                 document.getElementById('ans-code').innerText = c.code;
                 
