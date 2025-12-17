@@ -41,18 +41,37 @@
     <style>
         body { font-family: 'Plus Jakarta Sans', sans-serif; background-color: #FFFFFF; color: #334155; -webkit-font-smoothing: antialiased; }
         .app-bg { background-color: #F8FAFC; min-height: 100vh; }
-        .hide { display: none !important; }
-        .view-section { animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        /* ROBUST HIDING MECHANISM */
+        .hide { display: none !important; visibility: hidden !important; opacity: 0 !important; }
+        
+        .view-section { animation: fadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        
         .step-line { position: absolute; left: 11px; top: 24px; bottom: -24px; width: 2px; background-color: #E2E8F0; }
         .last-step .step-line { display: none; }
-        .spinner { border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 3px solid white; width: 20px; height: 20px; animation: spin 1s linear infinite; }
+        
+        /* SYSTEM LOADER */
+        #system-loader { position: fixed; inset: 0; background: white; z-index: 9999; display: flex; align-items: center; justify-content: center; transition: opacity 0.5s; }
+        .spinner { border: 3px solid #f3f3f3; border-radius: 50%; border-top: 3px solid #2563EB; width: 40px; height: 40px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* Active Filter Style */
-        .filter-active { background-color: #0F172A !important; color: white !important; border: none !important; }
     </style>
 </head>
 <body class="h-screen flex flex-col text-sm antialiased selection:bg-brand-blue/20 selection:text-brand-blue">
+
+    <!-- GLOBAL ERROR HANDLER -->
+    <script>
+        window.onerror = function(msg, url, line) {
+            console.error("Global Error:", msg);
+            // Only alert critical errors
+            if(msg.includes('supabase') || msg.includes('app')) {
+                alert("App Error: " + msg + "\nPlease refresh the page.");
+            }
+        };
+    </script>
+
+    <!-- SYSTEM LOADER OVERLAY -->
+    <div id="system-loader"><div class="spinner"></div></div>
 
     <!-- Top Navigation -->
     <header id="top-nav" class="bg-white/90 backdrop-blur-md sticky top-0 z-40 transition-all duration-300">
@@ -215,7 +234,7 @@
             <div class="fixed bottom-0 left-0 right-0 p-6 bg-white border-t border-slate-100 z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] pb-8">
                 <div class="max-w-md mx-auto">
                     <div id="btn-container-buy" class="bg-brand-dark text-white p-2 pl-6 rounded-[1.25rem] shadow-float flex items-center justify-between">
-                        <div class="flex flex-col"><span class="text-[10px] text-slate-300 uppercase font-bold tracking-wider">Full Access</span><div class="bg-brand-blue text-white text-xs font-bold px-2 py-0.5 rounded-md inline-block self-start mt-0.5">N<span id="detail-price">300</span></div></div>
+                        <div class="flex flex-col"><span class="text-[10px] text-slate-300 uppercase font-bold tracking-wider">Full Access</span><div class="bg-brand-blue text-white text-xs font-bold px-2 py-0.5 rounded-md inline-block self-start mt-0.5">N<span id="detail-price">1000</span></div></div>
                         <button onclick="app.initiatePayment()" class="bg-white text-brand-dark font-bold py-3 px-6 rounded-xl hover:bg-slate-100 transition shadow-sm">Unlock Now</button>
                     </div>
                     <button id="btn-view-course" onclick="app.openAnswers()" class="hidden w-full bg-brand-blue text-white font-bold py-4 px-6 rounded-[1.25rem] shadow-float hover:bg-blue-600 transition flex justify-center items-center gap-2"><span>Start Learning</span> <i class="fa-solid fa-arrow-right"></i></button>
@@ -251,7 +270,7 @@
                         <div class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm"><i class="fa-solid fa-wallet text-white/80"></i></div>
                     </div>
                     <div class="flex gap-3">
-                        <button onclick="alert('Withdrawals available after your first referral!')" class="flex-1 bg-white text-brand-dark text-xs font-bold py-2.5 px-4 rounded-xl">Withdraw</button>
+                        <button onclick="alert('Withdrawals available soon!')" class="flex-1 bg-white text-brand-dark text-xs font-bold py-2.5 px-4 rounded-xl">Withdraw</button>
                         <button onclick="app.copyReferral()" class="flex-1 bg-brand-blue text-white text-xs font-bold py-2.5 px-4 rounded-xl">Invite</button>
                     </div>
                 </div>
@@ -363,19 +382,50 @@
             state: { user: null, profile: null, currentCourseId: null, purchasedIds: [], activeFilter: 'All' },
 
             init: async function() {
-                if (typeof window.supabase === 'undefined') {
-                    setTimeout(app.init, 100); return;
+                // HASH ROUTING HANDLER
+                window.addEventListener('hashchange', () => app.handleHashChange());
+                
+                // WAIT FOR SCRIPTS
+                let attempts = 0;
+                while (typeof window.supabase === 'undefined' && attempts < 50) {
+                    await new Promise(r => setTimeout(r, 100));
+                    attempts++;
                 }
+
+                if (typeof window.supabase === 'undefined') {
+                    document.getElementById('system-loader').innerHTML = '<div class="text-red-500 font-bold p-4">Failed to load system. Please check internet.</div>';
+                    return;
+                }
+                
+                // START APP
                 supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
                 const { data: { session } } = await supabase.auth.getSession();
+                
                 if (session) {
                     this.state.user = session.user;
                     await this.loadUserData();
-                    this.navigateTo('dashboard');
+                    // If url has hash, use it, else dashboard
+                    if(!window.location.hash) this.navigateTo('dashboard');
+                    else this.handleHashChange();
                 } else {
-                    this.navigateTo('landing');
+                    if(window.location.hash === '#login' || window.location.hash === '#signup') {
+                        this.handleHashChange();
+                    } else {
+                        this.navigateTo('landing');
+                    }
                 }
+                
                 this.setupFilters();
+                // HIDE SPINNER
+                document.getElementById('system-loader').style.opacity = '0';
+                setTimeout(() => document.getElementById('system-loader').style.display = 'none', 500);
+            },
+            
+            handleHashChange: function() {
+                const hash = window.location.hash.substring(1);
+                if(['landing', 'login', 'signup', 'dashboard', 'profile', 'purchases'].includes(hash)) {
+                    this.renderView(hash);
+                }
             },
 
             loadUserData: async function() {
@@ -464,10 +514,6 @@
 
             // --- PAYMENTS ---
             initiatePayment: function() {
-                if (typeof PaystackPop === 'undefined') {
-                    alert("Paystack loading... Check connection."); return;
-                }
-                
                 const c = COURSES_DB.find(x => x.id === this.state.currentCourseId);
                 
                 if(!this.state.user || !this.state.user.email) {
@@ -479,7 +525,7 @@
                     const paymentData = {
                         key: PAYSTACK_KEY,
                         email: this.state.user.email,
-                        amount: c.price * 100, // Amount in Kobo
+                        amount: c.price * 100,
                         currency: 'NGN',
                         callback: function(response) {
                             app.verifyPurchase(response, c.id);
@@ -508,25 +554,36 @@
 
             // --- NAV & RENDER ---
             navigateTo: function(viewId) {
-                document.querySelectorAll('.view-section').forEach(el => el.classList.add('hide'));
-                document.getElementById(`view-${viewId}`).classList.remove('hide');
-                
-                const top = document.getElementById('top-nav');
-                const bot = document.getElementById('nav-bottom');
-                const actions = document.getElementById('nav-actions');
-                
-                if(['landing', 'login', 'signup'].includes(viewId)) {
-                    top.classList.remove('hide'); bot.classList.add('hide');
-                    if(viewId === 'landing') actions.classList.remove('hide'); else actions.classList.add('hide');
-                } else {
-                    top.classList.add('hide'); bot.classList.remove('hide');
-                    this.updateBotNav(viewId);
-                }
+                window.location.hash = viewId;
+                this.renderView(viewId);
+            },
+            
+            renderView: function(viewId) {
+                try {
+                    document.querySelectorAll('.view-section').forEach(el => el.classList.add('hide'));
+                    const target = document.getElementById(`view-${viewId}`);
+                    if(target) target.classList.remove('hide');
+                    else return; // basic safety
+                    
+                    const top = document.getElementById('top-nav');
+                    const bot = document.getElementById('nav-bottom');
+                    const actions = document.getElementById('nav-actions');
+                    
+                    if(['landing', 'login', 'signup'].includes(viewId)) {
+                        top.classList.remove('hide'); bot.classList.add('hide');
+                        if(viewId === 'landing') actions.classList.remove('hide'); else actions.classList.add('hide');
+                    } else {
+                        top.classList.add('hide'); bot.classList.remove('hide');
+                        this.updateBotNav(viewId);
+                    }
 
-                if(viewId === 'dashboard') this.renderDashboard();
-                if(viewId === 'purchases') this.renderLibrary();
-                if(viewId === 'profile') this.renderProfile();
-                window.scrollTo(0,0);
+                    if(viewId === 'dashboard') this.renderDashboard();
+                    if(viewId === 'purchases') this.renderLibrary();
+                    if(viewId === 'profile') this.renderProfile();
+                    window.scrollTo(0,0);
+                } catch(e) {
+                    console.error("Nav Error", e);
+                }
             },
 
             updateBotNav: function(viewId) {
@@ -656,6 +713,7 @@
                 if (isComingSoon) {
                     list.innerHTML = `<div class="text-center py-10 text-brand-sub text-sm">Questions are being solved by our experts.<br>Check back soon.</div>`;
                 } else if(owned) {
+                    // LOCKED / UNLOCKED VIEW FIX
                     list.innerHTML = c.questions.map((q, i) => `
                         <div onclick="app.openAnswers()" class="bg-white border border-slate-100 rounded-2xl p-5 shadow-sm mb-3 flex items-center justify-between cursor-pointer hover:border-brand-blue transition group">
                             <div class="flex items-center gap-3">
@@ -695,6 +753,10 @@
             },
 
             openAnswers: function() {
+                if(!this.state.currentCourseId) {
+                    alert('Error: No course selected. Please go back.'); return;
+                }
+
                 const c = COURSES_DB.find(x => x.id === this.state.currentCourseId);
                 document.getElementById('ans-code').innerText = c.code;
                 
