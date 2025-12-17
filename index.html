@@ -48,8 +48,8 @@
         .last-step .step-line { display: none; }
         .spinner { border: 3px solid rgba(255,255,255,0.3); border-radius: 50%; border-top: 3px solid white; width: 20px; height: 20px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        /* Active Filter Button */
-        .filter-active { background-color: #0F172A !important; color: white !important; border: none !important; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        /* Active Filter Style */
+        .filter-active { background-color: #0F172A !important; color: white !important; border: none !important; }
     </style>
 </head>
 <body class="h-screen flex flex-col text-sm antialiased selection:bg-brand-blue/20 selection:text-brand-blue">
@@ -215,7 +215,7 @@
             <div class="fixed bottom-0 left-0 right-0 p-6 bg-white border-t border-slate-100 z-50 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] pb-8">
                 <div class="max-w-md mx-auto">
                     <div id="btn-container-buy" class="bg-brand-dark text-white p-2 pl-6 rounded-[1.25rem] shadow-float flex items-center justify-between">
-                        <div class="flex flex-col"><span class="text-[10px] text-slate-300 uppercase font-bold tracking-wider">Full Access</span><div class="bg-brand-blue text-white text-xs font-bold px-2 py-0.5 rounded-md inline-block self-start mt-0.5">N<span id="detail-price">300</span></div></div>
+                        <div class="flex flex-col"><span class="text-[10px] text-slate-300 uppercase font-bold tracking-wider">Full Access</span><div class="bg-brand-blue text-white text-xs font-bold px-2 py-0.5 rounded-md inline-block self-start mt-0.5">N<span id="detail-price">1000</span></div></div>
                         <button onclick="app.initiatePayment()" class="bg-white text-brand-dark font-bold py-3 px-6 rounded-xl hover:bg-slate-100 transition shadow-sm">Unlock Now</button>
                     </div>
                     <button id="btn-view-course" onclick="app.openAnswers()" class="hidden w-full bg-brand-blue text-white font-bold py-4 px-6 rounded-[1.25rem] shadow-float hover:bg-blue-600 transition flex justify-center items-center gap-2"><span>Start Learning</span> <i class="fa-solid fa-arrow-right"></i></button>
@@ -299,7 +299,7 @@
         const COURSES_DB = [
             // --- IRM 102 ---
             { 
-                id: 'irm102', code: 'IRM 102', title: 'Library Routines', faculty: 'IRM', level: '100L', price: 300, 
+                id: 'irm102', code: 'IRM 102', title: 'Library Routines', faculty: 'IRM', level: '100L', price: 1000, 
                 questions: [
                     { q: 'How do the routines of academic, public, and special libraries differ?', a: '### Academic Libraries\nRoutines focus on supporting curriculum and research. Acquisitions are driven by faculty. Circulation allows long-term borrowing.\n\n### Public Libraries\nRoutines are geared towards community needs and recreation. Collection is broader (fiction, local interest). Circulation is high-volume with shorter loans.\n\n### Special Libraries\nRoutines are highly specialized. Acquisitions are on-demand. Dissemination is proactive to specific staff.' },
                     { q: 'Why are standard operating procedures (SOPs) essential in library management?', a: '### Consistency\nEnsures every user receives the same level of service.\n\n### Training\nServes as a tool for new staff.\n\n### Crisis Management\nProvides reference for complex situations like disaster response.' },
@@ -310,7 +310,7 @@
             },
             // --- IRM 103 ---
             { 
-                id: 'irm103', code: 'IRM 103', title: 'Libraries and Societies', faculty: 'IRM', level: '100L', price: 300, 
+                id: 'irm103', code: 'IRM 103', title: 'Libraries and Societies', faculty: 'IRM', level: '100L', price: 1000, 
                 questions: [
                     { q: 'Define a library and explain its primary functions.', a: '### Definition\nA social institution that collects, organizes, preserves, and disseminates information.\n\n### Functions\n1. Gateway to Information.\n2. Education Support.\n3. Cultural Preservation.\n4. Social Hub.' },
                     { q: 'Discuss historical development of libraries.', a: '### Ancient\nMesopotamia (Clay tablets), Egypt (Papyrus).\n\n### Medieval\nMonasteries preserved knowledge.\n\n### Renaissance\nPrinting press exploded book numbers.\n\n### Modern\nPublic library movement (Tax-supported).' },
@@ -321,7 +321,7 @@
             },
             // --- IRM 104 (Intro to Computer) ---
             { 
-                id: 'irm104', code: 'IRM 104', title: 'Introduction to Computer', faculty: 'IRM', level: '100L', price: 300, 
+                id: 'irm104', code: 'IRM 104', title: 'Introduction to Computer', faculty: 'IRM', level: '100L', price: 1000, 
                 questions: [
                     { q: 'What is a computer? Discuss booting.', a: '### Computer\nElectronic device that accepts data, processes it, and produces output.\n\n### Booting\nLoading OS from hard drive to RAM.\n\n### Restarting\nClearing RAM to fix glitches.\n\n### Shutdown\nCutting power to prevent hardware damage.' },
                     { q: 'Differentiate 3rd and 4th Gen computers.', a: '### 3rd Gen (1964-71)\nUsed Integrated Circuits (ICs). Keyboards introduced.\n\n### 4th Gen (1971-Present)\nUses Microprocessors (VLSI). Entire CPU on one chip.' },
@@ -330,7 +330,7 @@
             },
             // --- IRM 105 (Data Modelling) ---
             { 
-                id: 'irm105', code: 'IRM 105', title: 'Data Modelling and Storage', faculty: 'IRM', level: '100L', price: 300, 
+                id: 'irm105', code: 'IRM 105', title: 'Data Modelling and Storage', faculty: 'IRM', level: '100L', price: 1000, 
                 questions: [
                     { q: 'What is a data model?', a: '### Definition\nConceptual representation of data structures. It defines entities, attributes, and relationships.\n\n### Criteria for Storage\n1. Access speed\n2. Capacity\n3. Security\n4. Cost' },
                     { q: 'Explain Entity, Attribute, Primary Key.', a: '### Entity\nReal-world object (e.g., Student).\n\n### Attribute\nCharacteristic (e.g., Name).\n\n### Primary Key\nUnique identifier (e.g., Matric Number).' },
@@ -339,14 +339,14 @@
             },
             // --- IRM 106 (Record Management) ---
             { 
-                id: 'irm106', code: 'IRM 106', title: 'Record Management', faculty: 'IRM', level: '100L', price: 300, 
+                id: 'irm106', code: 'IRM 106', title: 'Record Management', faculty: 'IRM', level: '100L', price: 1000, 
                 questions: [
                     { q: 'Stages of Record Life Cycle.', a: '### Creation\nRecord is generated.\n\n### Usage\nActive reference.\n\n### Maintenance\nStorage and retrieval.\n\n### Disposal\nDestruction or Archiving.' }
                 ] 
             },
             // --- LIS 104 (Info Arch) ---
             { 
-                id: 'lis104', code: 'LIS 104', title: 'Information Architecture', faculty: 'IRM', level: '100L', price: 300, 
+                id: 'lis104', code: 'LIS 104', title: 'Information Architecture', faculty: 'IRM', level: '100L', price: 1000, 
                 questions: [
                     { q: 'What is Information Architecture (IA)?', a: '### Definition\nStructural design of shared information environments. Organizing websites to support usability.\n\n### Importance\nPrevents information overload. Ensures users find what they need.' },
                     { q: 'Difference between IA and UX.', a: '### UX (User Experience)\nBroad umbrella covering emotional response.\n\n### IA\nFocuses on structure and organization (The Skeleton).' },
@@ -354,8 +354,8 @@
                 ] 
             },
             // --- GST (Placeholders) ---
-            { id: 'gst107', code: 'GST 107', title: 'Use of English', faculty: 'IRM', level: '100L', price: 300, questions: [] },
-            { id: 'gst106', code: 'GST 106', title: 'Personal Health', faculty: 'IRM', level: '100L', price: 300, questions: [] }
+            { id: 'gst107', code: 'GST 107', title: 'Use of English', faculty: 'IRM', level: '100L', price: 1000, questions: [] },
+            { id: 'gst106', code: 'GST 106', title: 'Personal Health', faculty: 'IRM', level: '100L', price: 1000, questions: [] }
         ];
 
         let supabase;
@@ -462,7 +462,7 @@
                 this.navigateTo('landing');
             },
 
-            // --- PAYMENTS (FIXED) ---
+            // --- PAYMENTS (FIXED CALLBACK) ---
             initiatePayment: function() {
                 if (typeof PaystackPop === 'undefined') {
                     alert("Paystack loading... Check connection."); return;
@@ -476,11 +476,13 @@
                 }
 
                 try {
-                    // Defined outside to satisfy callback requirement
+                    // Force 50 Naira for testing as requested (remove this line later for 1000)
+                    const finalAmount = 50 * 100; 
+                    
                     const paymentData = {
                         key: PAYSTACK_KEY,
                         email: this.state.user.email,
-                        amount: c.price * 100,
+                        amount: finalAmount, // Charges 50 Naira
                         currency: 'NGN',
                         callback: function(response) {
                             app.verifyPurchase(response, c.id);
